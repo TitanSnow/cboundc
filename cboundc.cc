@@ -317,6 +317,22 @@ fun(lor){
     st.back()=')';
     return st;
 }
+fun(forblock){
+    assert(args.size()==4);
+    return string("for(")+args[0]+";"+args[1]+";"+args[2]+")"+args[3];
+}
+fun(cont){
+    assert(args.empty());
+    return "continue";
+}
+fun(brk){
+    assert(args.empty());
+    return "break";
+}
+fun(empty){
+    assert(args.empty());
+    return " ";
+}
 map<string,func> regMarco(){
     map<string,func> table;
     table["+"]=plus;
@@ -343,6 +359,10 @@ map<string,func> regMarco(){
     table["|"]=bor;
     table["and"]=land;
     table["or"]=lor;
+    table["for"]=forblock;
+    table["continue"]=cont;
+    table["break"]=brk;
+    table["empty"]=empty;
     return table;
 }
 int main(){
