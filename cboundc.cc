@@ -50,7 +50,7 @@ string awd(map<string,func> const &table,istream &in){
             if(nx=='\\')
                 keep=!keep;
             else{
-                if(nx==' '){
+                if(isspace(nx)){
                     st.pop_back();
                     if(!keep)
                         break;
@@ -75,7 +75,7 @@ string awd(map<string,func> const &table,istream &in){
         if(nx=='\\')
             keep=!keep;
         else{
-            if(nx==' '){
+            if(isspace(nx)){
                 st.pop_back();
                 if(!keep)
                     break;
@@ -158,7 +158,7 @@ fun(include){
 fun(doblock){
     string st="{\n";
     forarg
-        st+=*it+";\n";
+        st+=*it+(it->back()=='\n'?"":";\n");
     return st+"}\n";
 }
 fun(deffunc){
