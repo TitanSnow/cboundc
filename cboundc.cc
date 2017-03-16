@@ -28,8 +28,7 @@ string awd(map<string,func> const &table,istream &in){
         string st;st+=ch;
         char nx;
         bool keep=false;
-        while(true){
-            cin.get(nx);
+        while(in.get(nx)){
             st+=nx;
             if(nx=='\\')
                 keep=!keep;
@@ -44,14 +43,31 @@ string awd(map<string,func> const &table,istream &in){
     if(ch!='('){
         in.unget();
         string st;
-        char ch;
-        while(in.get(ch)&&!isspace(ch)&&ch!=')')
-            st+=ch;
+        char nx;
+        bool keep=false;
+        while(in.get(nx)){
+            st+=nx;
+            if(nx=='\\')
+                keep=!keep;
+            else{
+                if(nx==' '){
+                    st.pop_back();
+                    if(!keep)
+                        break;
+                    else
+                        st.back()=' ';
+                }else if(nx==')'){
+                    st.pop_back();
+                    break;
+                }
+                keep=false;
+            }
+        }
         if(in) in.unget();
         return st;
     }
     string op;
-    cin>>op;
+    in>>op;
     vector<string> args;
     string t;
     while((t=awd(table,in))!="")
