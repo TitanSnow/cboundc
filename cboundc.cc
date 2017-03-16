@@ -67,7 +67,28 @@ string awd(map<string,func> const &table,istream &in){
         return st;
     }
     string op;
-    in>>op;
+    string &st=op;
+    char nx;
+    bool keep=false;
+    while(in.get(nx)){
+        st+=nx;
+        if(nx=='\\')
+            keep=!keep;
+        else{
+            if(nx==' '){
+                st.pop_back();
+                if(!keep)
+                    break;
+                else
+                    st.back()=' ';
+            }else if(nx==')'){
+                st.pop_back();
+                break;
+            }
+            keep=false;
+        }
+    }
+    if(in) in.unget();
     vector<string> args;
     string t;
     while((t=awd(table,in))!="")
@@ -76,7 +97,8 @@ string awd(map<string,func> const &table,istream &in){
         string rst=op+"(";
         for(vector<string>::const_iterator it(args.begin());it!=args.end();++it)
             rst+=*it+",";
-        rst.back()=')';
+        if(!args.empty())rst.back()=')';
+        else rst+=")";
         return rst;
     }
     return table.find(op)->second(args);
@@ -84,6 +106,8 @@ string awd(map<string,func> const &table,istream &in){
 #define fun(name) string name(vector<string> const &args)
 #define forarg for(vector<string>::const_iterator it(args.begin());it!=args.end();++it)
 fun(plus){
+    assert(!args.empty());
+    if(args.size()==1) return string("+(")+args.front()+")";
     string st="(";
     forarg
         st+=*it+"+";
@@ -91,6 +115,8 @@ fun(plus){
     return st;
 }
 fun(sub){
+    assert(!args.empty());
+    if(args.size()==1) return string("-(")+args.front()+")";
     string st="(";
     forarg
         st+=*it+"-";
@@ -98,6 +124,8 @@ fun(sub){
     return st;
 }
 fun(mul){
+    assert(!args.empty());
+    if(args.size()==1) return string("*(")+args.front()+")";
     string st="(";
     forarg
         st+=*it+"*";
@@ -105,6 +133,7 @@ fun(mul){
     return st;
 }
 fun(div){
+    assert(!args.empty());
     string st="(";
     forarg
         st+=*it+"/";
@@ -112,6 +141,7 @@ fun(div){
     return st;
 }
 fun(mod){
+    assert(!args.empty());
     string st="(";
     forarg
         st+=*it+"%";
@@ -119,6 +149,7 @@ fun(mod){
     return st;
 }
 fun(include){
+    assert(!args.empty());
     string st;
     forarg
         st+="#include"+*it+"\n";
@@ -151,11 +182,139 @@ fun(def){
     return st;
 }
 fun(setvar){
+    assert(!args.empty());
     string st;
     forarg
         st+=*it+"=";
     if(!st.empty())
         st.pop_back();
+    return st;
+}
+fun(ifelse){
+    string st("if(");
+    assert(args.size()==2||args.size()==3);
+    st+=args[0]+")"+args[1];
+    if(args.size()==3){
+        if(st.back()!='\n')
+            st+=";";
+        st+="else ";
+        st+=args[2];
+    }
+    return st;
+}
+fun(lhs){
+    assert(!args.empty());
+    string st="(";
+    forarg
+        st+=*it+"<<";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(rhs){
+    assert(!args.empty());
+    string st="(";
+    forarg
+        st+=*it+">>";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(lt){
+    assert(args.size()>=2);
+    string st="(";
+    for(vector<string>::const_iterator it(args.begin());it!=args.end()-1;++it)
+        st+="("+*it+"<"+*(it+1)+")&&";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(rt){
+    assert(args.size()>=2);
+    string st="(";
+    for(vector<string>::const_iterator it(args.begin());it!=args.end()-1;++it)
+        st+="("+*it+">"+*(it+1)+")&&";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(lte){
+    assert(args.size()>=2);
+    string st="(";
+    for(vector<string>::const_iterator it(args.begin());it!=args.end()-1;++it)
+        st+="("+*it+"<="+*(it+1)+")&&";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(rte){
+    assert(args.size()>=2);
+    string st="(";
+    for(vector<string>::const_iterator it(args.begin());it!=args.end()-1;++it)
+        st+="("+*it+">="+*(it+1)+")&&";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(eq){
+    assert(args.size()>=2);
+    string st="(";
+    for(vector<string>::const_iterator it(args.begin());it!=args.end()-1;++it)
+        st+="("+*it+"=="+*(it+1)+")&&";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(neq){
+    assert(args.size()>=2);
+    string st="(";
+    for(vector<string>::const_iterator it(args.begin());it!=args.end()-1;++it)
+        st+="("+*it+"!="+*(it+1)+")&&";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(band){
+    assert(!args.empty());
+    if(args.size()==1) return string("&(")+args.front()+")";
+    string st="(";
+    forarg
+        st+=*it+"&";
+    st.back()=')';
+    return st;
+}
+fun(bxor){
+    assert(!args.empty());
+    string st="(";
+    forarg
+        st+=*it+"^";
+    st.back()=')';
+    return st;
+}
+fun(bor){
+    assert(!args.empty());
+    string st="(";
+    forarg
+        st+=*it+"|";
+    st.back()=')';
+    return st;
+}
+fun(land){
+    assert(!args.empty());
+    string st="(";
+    forarg
+        st+=*it+"&&";
+    st.pop_back();
+    st.back()=')';
+    return st;
+}
+fun(lor){
+    assert(!args.empty());
+    string st="(";
+    forarg
+        st+=*it+"||";
+    st.pop_back();
+    st.back()=')';
     return st;
 }
 map<string,func> regMarco(){
@@ -170,6 +329,20 @@ map<string,func> regMarco(){
     table["func"]=deffunc;
     table["def"]=def;
     table["="]=setvar;
+    table["if"]=ifelse;
+    table["<<"]=lhs;
+    table[">>"]=rhs;
+    table["<"]=lt;
+    table[">"]=rt;
+    table["<="]=lte;
+    table[">="]=rte;
+    table["=="]=eq;
+    table["!="]=neq;
+    table["&"]=band;
+    table["^"]=bxor;
+    table["|"]=bor;
+    table["and"]=land;
+    table["or"]=lor;
     return table;
 }
 int main(){
